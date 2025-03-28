@@ -2,6 +2,7 @@
 using MvcOAuthEmpleados.Filters;
 using MvcOAuthEmpleados.Models;
 using MvcOAuthEmpleados.Services;
+using NuGet.Common;
 
 namespace MvcOAuthEmpleados.Controllers
 {
@@ -21,18 +22,24 @@ namespace MvcOAuthEmpleados.Controllers
         public async Task<IActionResult> Details
             (int id)
         {
-            string token = HttpContext.Session.GetString("TOKEN");
-            if (token == null)
-            {
-                ViewData["MENSAJE"] = "Debe validarse en el login";
-                return View();
-            }
-            else
-            {
-                Empleado empleado = await
-                    this.service.FindEmpleadoAsync(id, token);
-                return View(empleado);
-            }
+            
+            Empleado empleado = await
+                    this.service.FindEmpleadoAsync(id);
+            return View(empleado);
+        }
+        [AuthorizeEmpleados]
+        public async Task<ActionResult> Perfil()
+        {
+            Empleado empleado = await
+                this.service.GetPerfilAsync();
+            return View(empleado);
+        }
+        [AuthorizeEmpleados]
+        public async Task<ActionResult> Compis()
+        {
+            List<Empleado> empleados = await
+                this.service.GetCompisAsync();
+            return View(empleados);
         }
     }
 }

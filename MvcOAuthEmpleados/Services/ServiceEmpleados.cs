@@ -9,10 +9,13 @@ namespace MvcOAuthEmpleados.Services
     {
         private string UrlApi;
         private MediaTypeWithQualityHeaderValue header;
-        public ServiceEmpleados(IConfiguration configuration)
+        private IHttpContextAccessor contextAccessor;
+        public ServiceEmpleados(IConfiguration configuration,
+            IHttpContextAccessor contextAccessor)
         {
             this.UrlApi = configuration.GetValue<string>("ApiUrls:ApiEmpleados");
             this.header = new MediaTypeWithQualityHeaderValue("application/json");
+            this.contextAccessor = contextAccessor;
         }
 
         public async Task<string> GetTokenAsync
@@ -102,13 +105,33 @@ namespace MvcOAuthEmpleados.Services
         //  ALMACENAR EL TOKEN EN SESSION
         //  POR AHORA, RECIBIMOS EL TOKEN EN EL METODO
         public async Task<Empleado> FindEmpleadoAsync
-            (int idEmpleado, string token)
+            (int idEmpleado)
         {
+
+            string token = this.contextAccessor.HttpContext.User.FindFirst(x => x.Type == "TOKEN").Value;
             string request = "api/empleados/"+idEmpleado;
             Empleado empleado = await
                 this.CallApiAsync<Empleado>(request, token);
             return empleado;
+        }
 
+        public async Task<Empleado> GetPerfilAsync()
+        {
+            string token = this.contextAccessor.HttpContext.User
+                .FindFirst(x => x.Type == "TOKEN").Value;
+            string request = "api/empleados/perfil";
+            Empleado empleado = await
+                this.CallApiAsync<Empleado>(request, token);
+            return empleado;
+        }
+        public async Task<List<Empleado>> GetCompisAsync()
+        {
+            string token = this.contextAccessor.HttpContext.User
+                .FindFirst(x => x.Type == "TOKEN").Value;
+            string request = "api/empleados/Compis";
+            List<Empleado> empleados = await 
+                this.CallApiAsync<List<Empleado>>(request,token);
+            return empleados;
         }
     }
 
