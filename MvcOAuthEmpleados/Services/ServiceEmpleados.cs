@@ -1,6 +1,7 @@
 ﻿using MvcOAuthEmpleados.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using NuGet.Protocol;
 using System.Net.Http.Headers;
 
 namespace MvcOAuthEmpleados.Services
@@ -132,6 +133,48 @@ namespace MvcOAuthEmpleados.Services
             List<Empleado> empleados = await 
                 this.CallApiAsync<List<Empleado>>(request,token);
             return empleados;
+        }
+        public async Task<List<string>> GetOficiosAsync()
+        {
+            string request = "api/empleados/oficios";
+            List<string> oficios = await this.CallApiAsync<List<string>>(request);
+            return oficios;
+        }
+        private string TransformCollectionToQuery
+            (List<string> collection)
+        {
+            string resultado = "";
+            foreach (string elem in collection)
+            {
+                resultado += "oficio=" + elem + "&";
+            }
+            resultado = resultado.TrimEnd('&');
+            return resultado;
+        }
+        public async Task<List<Empleado>> GetEmpleadosByOficioAsync
+            (List<string> oficios)
+        {
+            string request = "api/empleados/empleadosoficio";
+            string data = this.TransformCollectionToQuery(oficios);
+            List<Empleado> empleados = await
+                this.CallApiAsync<List<Empleado>>
+                (request + "?" + data);
+            return empleados;
+        }
+        public async Task UpdateEmpleadosOficioAsync
+            (int incremento, List<string> oficios)
+        {
+            string request = "api/empleados/incrementarsalarios/"+incremento;
+            string data = this.TransformCollectionToQuery(oficios);
+            using (HttpClient client = new HttpClient())
+            {
+                client.BaseAddress = new Uri(this.UrlApi);
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Accept.Add(this.header);
+                HttpResponseMessage response =
+                    await client.PutAsync(request + "?" + data, null);
+            }
+
         }
     }
 
